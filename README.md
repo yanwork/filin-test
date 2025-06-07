@@ -4,7 +4,7 @@
 ![Build Docker Image](https://github.com/yanwork/filin-test/workflows/Build%20Docker%20Image/badge.svg)
 ![Publish Docker Image](https://github.com/yanwork/filin-test/workflows/Publish%20Docker%20Image/badge.svg)
 ![Release](https://img.shields.io/github/v/release/yanwork/filin-test)
-![License](https://img.shields.io/github/license/yanwork/filin-test)
+![License](https://img.shields.io/badge/license-MIT-blue.svg)
 ![Python](https://img.shields.io/badge/python-3.11-blue.svg)
 
 Консольное приложение с красивым форматированием, анимацией и поддержкой многоязычности.
