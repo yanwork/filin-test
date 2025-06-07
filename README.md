@@ -1,5 +1,12 @@
 # Filin Console Application
 
+![Tests](https://github.com/yanwork/filin-test/workflows/Tests/badge.svg)
+![Docker Build](https://github.com/yanwork/filin-test/workflows/Docker%20Build/badge.svg)
+![Docker Publish](https://github.com/yanwork/filin-test/workflows/Docker%20Publish/badge.svg)
+![Release](https://img.shields.io/github/v/release/yanwork/filin-test)
+![License](https://img.shields.io/github/license/yanwork/filin-test)
+![Python](https://img.shields.io/badge/python-3.11-blue.svg)
+
 Консольное приложение с красивым форматированием, анимацией и поддержкой многоязычности.
 
 ## Описание
