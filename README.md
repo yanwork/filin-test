@@ -1,8 +1,8 @@
 # Filin Console Application
 
-![Tests](https://github.com/yanwork/filin-test/workflows/Tests/badge.svg)
-![Docker Build](https://github.com/yanwork/filin-test/workflows/Docker%20Build/badge.svg)
-![Docker Publish](https://github.com/yanwork/filin-test/workflows/Docker%20Publish/badge.svg)
+![Python CI](https://github.com/yanwork/filin-test/workflows/Python%20CI/badge.svg)
+![Build Docker Image](https://github.com/yanwork/filin-test/workflows/Build%20Docker%20Image/badge.svg)
+![Publish Docker Image](https://github.com/yanwork/filin-test/workflows/Publish%20Docker%20Image/badge.svg)
 ![Release](https://img.shields.io/github/v/release/yanwork/filin-test)
 ![License](https://img.shields.io/github/license/yanwork/filin-test)
 ![Python](https://img.shields.io/badge/python-3.11-blue.svg)
