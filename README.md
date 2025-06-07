@@ -77,6 +77,16 @@ pytest
 - `DOCKERHUB_USERNAME` - имя пользователя Docker Hub
 - `DOCKERHUB_TOKEN` - токен доступа Docker Hub
 
+### Создание релиза для публикации
+Для запуска публикации Docker образа:
+1. Перейдите в раздел "Releases" на GitHub
+2. Нажмите "Create a new release"
+3. Выберите тег v1.0.0 (уже создан) или создайте новый
+4. Заполните описание релиза
+5. Нажмите "Publish release"
+
+После публикации релиза автоматически запустится workflow docker-publish.yml
+
 ## Особенности Docker-контейнера
 
 - Базовый образ: `python:3.11-slim`
