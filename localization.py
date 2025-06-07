@@ -31,9 +31,12 @@ TRANSLATIONS: Dict[Language, Dict[str, Any]] = {
         
         # Ввод пользователя
         "enter_name": "Введите ваше имя",
+        "enter_name_with_default": "Введите ваше имя [{default}]",
         "name_empty_error": "Имя не может быть пустым. Пожалуйста, введите ваше имя.",
         "invalid_input": "Некорректный ввод. Пожалуйста, попробуйте снова.",
         "hello": "Привет",
+        "using_default_name": "Используем имя по умолчанию: {name}",
+        "timeout_message": "Время ожидания истекло.",
         
         # Операции
         "calculating": "Вычисляем",
@@ -47,7 +50,8 @@ TRANSLATIONS: Dict[Language, Dict[str, Any]] = {
         "language_russian": "Русский",
         "language_english": "English",
         "language_prompt": "Ваш выбор (1/2): ",
-        "invalid_language_choice": "Некорректный выбор. Пожалуйста, введите 1 или 2."
+        "invalid_language_choice": "Некорректный выбор. Пожалуйста, введите 1 или 2.",
+        "using_default_language": "Используем язык по умолчанию: Русский"
     },
     
     Language.ENGLISH: {
@@ -64,9 +68,12 @@ TRANSLATIONS: Dict[Language, Dict[str, Any]] = {
         
         # User input
         "enter_name": "Enter your name",
+        "enter_name_with_default": "Enter your name [{default}]",
         "name_empty_error": "Name cannot be empty. Please enter your name.",
         "invalid_input": "Invalid input. Please try again.",
         "hello": "Hello",
+        "using_default_name": "Using default name: {name}",
+        "timeout_message": "Timeout expired.",
         
         # Operations
         "calculating": "Calculating",
@@ -80,7 +87,8 @@ TRANSLATIONS: Dict[Language, Dict[str, Any]] = {
         "language_russian": "Russian",
         "language_english": "English",
         "language_prompt": "Your choice (1/2): ",
-        "invalid_language_choice": "Invalid choice. Please enter 1 or 2."
+        "invalid_language_choice": "Invalid choice. Please enter 1 or 2.",
+        "using_default_language": "Using default language: Russian"
     }
 }
 

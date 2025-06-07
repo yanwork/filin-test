@@ -8,6 +8,8 @@
 
 import sys
 import time
+import threading
+import queue
 from dataclasses import dataclass
 from typing import List, Any, Optional, Callable, Union, TypeVar
 
@@ -25,6 +27,17 @@ PROGRESS_STEPS = 50
 DEFAULT_PROGRESS_WIDTH = 20
 ANIMATION_DELAY = 0.2
 DEFAULT_PAUSE = 0.5
+
+# Константы для пользователя
+INPUT_TIMEOUT = 10  # секунд
+
+def get_default_username() -> str:
+    """Возвращает имя пользователя по умолчанию в зависимости от текущего языка."""
+    from localization import localizer
+    if localizer.language == Language.ENGLISH:
+        return "User"
+    else:
+        return "Пользователь"
 
 T = TypeVar('T')
 
@@ -213,6 +226,66 @@ class Calculator:
         return a + b
 
 
+def input_with_timeout(prompt: str, timeout: float = INPUT_TIMEOUT, default: str = None) -> str:
+    """
+    Запрашивает ввод с таймаутом. Если пользователь не начинает вводить в течение указанного времени,
+    возвращает значение по умолчанию.
+    
+    Args:
+        prompt: Приглашение к вводу
+        timeout: Время ожидания в секундах
+        default: Значение по умолчанию
+        
+    Returns:
+        Введенная строка или значение по умолчанию
+    """
+    result_queue = queue.Queue()
+    input_started = threading.Event()
+    
+    def input_thread():
+        """Поток для ввода данных."""
+        try:
+            # Показываем приглашение
+            sys.stdout.write(prompt)
+            sys.stdout.flush()
+            
+            # Ждем первый символ
+            first_char = sys.stdin.read(1)
+            if first_char:
+                input_started.set()  # Сигнализируем, что ввод начался
+                
+                # Читаем остальную часть строки
+                rest_of_line = sys.stdin.readline()
+                full_input = first_char + rest_of_line.rstrip('\n\r')
+                result_queue.put(full_input)
+            else:
+                result_queue.put("")
+        except Exception as e:
+            result_queue.put("")
+    
+    # Запускаем поток ввода
+    thread = threading.Thread(target=input_thread, daemon=True)
+    thread.start()
+    
+    # Ждем либо начала ввода, либо таймаута
+    if input_started.wait(timeout):
+        # Пользователь начал вводить, ждем завершения
+        thread.join()
+        try:
+            return result_queue.get_nowait()
+        except queue.Empty:
+            return default
+    else:
+        # Таймаут истек
+        if default == "1" and "[1]" in prompt:
+            # Это выбор языка
+            print(f"\n{get_text('timeout_message')} {get_text('using_default_language')}")
+        elif default and default != "1":
+            # Это имя пользователя
+            print(f"\n{get_text('timeout_message')} {get_text('using_default_name').format(name=default)}")
+        return default
+
+
 def safe_input(prompt_func: Callable[[], str], 
                validation_func: Callable[[str], bool] = None, 
                error_message: str = None) -> str:
@@ -240,6 +313,8 @@ def safe_input(prompt_func: Callable[[], str],
 def greet_user(ui: ConsoleUI) -> str:
     """
     Запрашивает имя пользователя и здоровается с ним.
+    Если пользователь не начинает вводить имя в течение 10 секунд,
+    используется имя по умолчанию.
     
     Args:
         ui: Объект пользовательского интерфейса
@@ -247,15 +322,28 @@ def greet_user(ui: ConsoleUI) -> str:
     Returns:
         Имя пользователя
     """
-    enter_name = get_text("enter_name")
-    name_empty_error = get_text("name_empty_error")
+    # Получаем имя по умолчанию для текущего языка
+    default_username = get_default_username()
     
-    name = safe_input(
-        lambda: ui.get_user_input(enter_name),
-        lambda x: x.strip() != "",
-        name_empty_error
-    )
+    # Получаем локализованные строки
+    enter_name_template = get_text("enter_name_with_default")
+    enter_name_prompt = enter_name_template.format(default=default_username)
     
+    # Формируем цветное приглашение
+    if ui.config.use_colors:
+        formatted_prompt = f"{Fore.CYAN}{enter_name_prompt}: {Style.RESET_ALL}"
+    else:
+        formatted_prompt = f"{enter_name_prompt}: "
+    
+    # Запрашиваем ввод с таймаутом
+    name = input_with_timeout(formatted_prompt, INPUT_TIMEOUT, default_username)
+    
+    # Если имя пустое, используем значение по умолчанию
+    if not name.strip():
+        name = default_username
+        ui.print_colored(get_text("using_default_name").format(name=name), Fore.YELLOW)
+    
+    # Приветствуем пользователя
     hello_text = get_text("hello")
     ui.print_colored(f"{hello_text}, {name}!", Fore.GREEN, bright=True)
     return name
@@ -263,7 +351,9 @@ def greet_user(ui: ConsoleUI) -> str:
 
 def select_language() -> Language:
     """
-    Запрашивает у пользователя выбор языка.
+    Запрашивает у пользователя выбор языка с таймаутом.
+    Если пользователь не выбирает язык в течение 10 секунд, 
+    используется русский язык по умолчанию.
     
     Returns:
         Выбранный язык
@@ -272,14 +362,20 @@ def select_language() -> Language:
     print(f"1. {get_text('language_russian')}")
     print(f"2. {get_text('language_english')}")
     
+    # Формируем приглашение с указанием языка по умолчанию
+    prompt = f"{get_text('language_prompt')} [1]: "
+    
     while True:
-        choice = input(get_text("language_prompt"))
-        if choice == "1":
+        choice = input_with_timeout(prompt, INPUT_TIMEOUT, "1")
+        
+        if choice == "1" or choice.strip() == "":
             return Language.RUSSIAN
         elif choice == "2":
             return Language.ENGLISH
         else:
             print(get_text("invalid_language_choice"))
+            # Для повторного запроса используем обычный input без таймаута
+            prompt = get_text("language_prompt")
 
 
 def main() -> None:
