@@ -5,8 +5,10 @@ import sys
 
 from main import (
     ConsoleUI, DisplayConfig, Calculator, 
-    safe_input, greet_user
+    safe_input, greet_user, input_with_timeout, 
+    get_default_username, select_language
 )
+from localization import Language, set_language
 
 
 class TestConsoleUI(unittest.TestCase):
@@ -128,12 +130,103 @@ class TestHelperFunctions(unittest.TestCase):
     def test_greet_user(self):
         """Тест функции greet_user."""
         mock_ui = MagicMock()
-        mock_ui.get_user_input.return_value = "Test User"
+        mock_ui.config.use_colors = False
         
-        with patch('main.safe_input', return_value="Test User") as mock_safe_input:
+        with patch('main.input_with_timeout', return_value="Test User") as mock_input_timeout:
             result = greet_user(mock_ui)
             self.assertEqual(result, "Test User")
-            mock_ui.print_colored.assert_called_once()
+            mock_ui.print_colored.assert_called()
+            mock_input_timeout.assert_called_once()
+    
+    def test_greet_user_timeout(self):
+        """Тест функции greet_user с таймаутом (использование имени по умолчанию)."""
+        mock_ui = MagicMock()
+        mock_ui.config.use_colors = False
+        
+        with patch('main.input_with_timeout', return_value="Пользователь") as mock_input_timeout:
+            result = greet_user(mock_ui)
+            self.assertEqual(result, "Пользователь")
+            mock_ui.print_colored.assert_called()
+            mock_input_timeout.assert_called_once()
+
+
+class TestNewFunctions(unittest.TestCase):
+    """Тесты для новых функций с таймаутом."""
+    
+    def test_get_default_username_russian(self):
+        """Тест функции get_default_username для русского языка."""
+        set_language(Language.RUSSIAN)
+        result = get_default_username()
+        self.assertEqual(result, "Пользователь")
+    
+    def test_get_default_username_english(self):
+        """Тест функции get_default_username для английского языка."""
+        set_language(Language.ENGLISH)
+        result = get_default_username()
+        self.assertEqual(result, "User")
+    
+    def test_input_with_timeout_immediate_input(self):
+        """Тест функции input_with_timeout с немедленным вводом."""
+        with patch('threading.Thread') as mock_thread:
+            with patch('queue.Queue') as mock_queue:
+                with patch('threading.Event') as mock_event:
+                    # Настраиваем mock для имитации немедленного ввода
+                    mock_event_instance = MagicMock()
+                    mock_event_instance.wait.return_value = True
+                    mock_event.return_value = mock_event_instance
+                    
+                    mock_queue_instance = MagicMock()
+                    mock_queue_instance.get_nowait.return_value = "test input"
+                    mock_queue.return_value = mock_queue_instance
+                    
+                    result = input_with_timeout("Test: ", 1, "default")
+                    self.assertEqual(result, "test input")
+    
+    def test_input_with_timeout_timeout(self):
+        """Тест функции input_with_timeout с таймаутом."""
+        with patch('threading.Thread') as mock_thread:
+            with patch('queue.Queue') as mock_queue:
+                with patch('threading.Event') as mock_event:
+                    with patch('builtins.print') as mock_print:
+                        # Настраиваем mock для имитации таймаута
+                        mock_event_instance = MagicMock()
+                        mock_event_instance.wait.return_value = False
+                        mock_event.return_value = mock_event_instance
+                        
+                        result = input_with_timeout("Test: ", 0.1, "default_value")
+                        self.assertEqual(result, "default_value")
+    
+    def test_select_language_russian(self):
+        """Тест функции select_language с выбором русского языка."""
+        with patch('main.input_with_timeout', return_value="1") as mock_input:
+            with patch('builtins.print'):
+                result = select_language()
+                self.assertEqual(result, Language.RUSSIAN)
+                mock_input.assert_called_once()
+    
+    def test_select_language_english(self):
+        """Тест функции select_language с выбором английского языка."""
+        with patch('main.input_with_timeout', return_value="2") as mock_input:
+            with patch('builtins.print'):
+                result = select_language()
+                self.assertEqual(result, Language.ENGLISH)
+                mock_input.assert_called_once()
+    
+    def test_select_language_timeout(self):
+        """Тест функции select_language с таймаутом (русский по умолчанию)."""
+        with patch('main.input_with_timeout', return_value="1") as mock_input:
+            with patch('builtins.print'):
+                result = select_language()
+                self.assertEqual(result, Language.RUSSIAN)
+                mock_input.assert_called_once()
+    
+    def test_select_language_empty_input(self):
+        """Тест функции select_language с пустым вводом."""
+        with patch('main.input_with_timeout', return_value="") as mock_input:
+            with patch('builtins.print'):
+                result = select_language()
+                self.assertEqual(result, Language.RUSSIAN)
+                mock_input.assert_called_once()
 
 
 if __name__ == '__main__':
